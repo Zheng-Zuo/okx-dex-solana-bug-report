@@ -19,7 +19,6 @@ import {
     TransactionInstruction,
     TransactionMessage,
     VersionedTransaction,
-    SYSVAR_RENT_PUBKEY,
 } from "@solana/web3.js";
 import {
     AccountLayout,
@@ -208,7 +207,9 @@ describe("Pumpfun Buy Tests", () => {
                 ],
             };
 
-            const createKeys = (rentOrCreatorVault: PublicKey) => [
+            const [saAuthority] = PublicKey.findProgramAddressSync([Buffer.from("okx_sa")], dexSolanaProgram.programId);
+
+            const keys = [
                 { pubkey: pumpFunProgramId, isWritable: false, isSigner: false }, // dex program id
                 { pubkey: payer.publicKey, isWritable: true, isSigner: true }, // payer
                 { pubkey: sourceTokenAccount, isWritable: true, isSigner: false }, // temp wsol account
@@ -220,70 +221,42 @@ describe("Pumpfun Buy Tests", () => {
                 { pubkey: associatedBondingCurve, isWritable: true, isSigner: false },
                 { pubkey: SystemProgram.programId, isWritable: false, isSigner: false },
                 { pubkey: TOKEN_PROGRAM_ID, isWritable: false, isSigner: false },
-                { pubkey: rentOrCreatorVault, isWritable: true, isSigner: false },
+                { pubkey: creatorVault, isWritable: true, isSigner: false },
                 { pubkey: eventAuthority, isWritable: false, isSigner: false },
             ];
 
-            const keysWithRent = createKeys(SYSVAR_RENT_PUBKEY);
-
             // 5. Create the swap instruction
-            let buyTx = await dexSolanaProgram.methods
-                .swap2(swapArgs, new BN(0))
+            const buyTx = await dexSolanaProgram.methods
+                .proxySwap(swapArgs, new BN(0))
                 .accounts({
                     payer: payer.publicKey,
                     sourceTokenAccount,
                     destinationTokenAccount: payerAta,
                     sourceMint: NATIVE_MINT,
                     destinationMint: tokenMint,
+                    sourceTokenSa: null,
+                    destinationTokenSa: null,
+                    sourceTokenProgram: TOKEN_PROGRAM_ID,
+                    destinationTokenProgram: TOKEN_PROGRAM_ID,
                 })
-                .remainingAccounts(keysWithRent)
+                .remainingAccounts(keys)
                 .instruction();
 
             // All instructions in order
             let instructions = [createAccountIx, transferIx, initAccountIx, syncNativeIx, buyTx];
 
             // Execute the versioned transaction
-            console.log("Executing pump.fun buy swap with rent account...");
+            console.log("Executing pump.fun buy swap ...");
             let txResult = await createAndProcessVersionedTransaction(client, payer, instructions);
 
-            // the transaction should fail with the custom error: 0x7d6
-            console.log("\n transaction should fail with the custom error: 0x7d6 \n");
+            // the transaction should fail with InvalidAccountData
+            console.log("\n transaction should fail with InvalidAccountData \n");
             expect(txResult.result).to.not.be.null;
             let errorString = txResult.result.toString();
-            expect(errorString).to.include("custom program error: 0x7d6");
-
-            const keysWithCreatorVault = createKeys(creatorVault);
-            buyTx = await dexSolanaProgram.methods
-                .swap2(swapArgs, new BN(0))
-                .accounts({
-                    payer: payer.publicKey,
-                    sourceTokenAccount,
-                    destinationTokenAccount: payerAta,
-                    sourceMint: NATIVE_MINT,
-                    destinationMint: tokenMint,
-                })
-                .remainingAccounts(keysWithCreatorVault)
-                .instruction();
-            instructions = [createAccountIx, transferIx, initAccountIx, syncNativeIx, buyTx];
-
-            console.log("Executing pump.fun buy swap with creator vault account...");
-            txResult = await createAndProcessVersionedTransaction(client, payer, instructions);
-
-            // the transaction should fail with the custom error: 0x7d0, Error Message: A mut constraint was violated.
-            console.log("\n transaction should fail with the custom error: 0x7d0 \n");
-            expect(txResult.result).to.not.be.null;
-            errorString = txResult.result.toString();
-            expect(errorString).to.include("custom program error: 0x7d0");
+            console.log(errorString);
+            expect(errorString).to.include("invalid account data for instruction");
         });
     });
 });
 
-// this error
-// Program log: AnchorError caused by account: creator_vault. Error Code: ConstraintSeeds. Error Number: 2006. Error Message: A seeds constraint was violated.
-// Program log: Left:
-// Program log: SysvarRent111111111111111111111111111111111
-// Program log: Right:
-// Program log: BxE6X4JgY2xN8arBYBCMmagMfXSbQSEWFRFufExJwvE3
-
-// or this error
-// Program log: AnchorError caused by account: creator_vault. Error Code: ConstraintMut. Error Number: 2000. Error Message: A mut constraint was violated.
+// Error processing Instruction 4: invalid account data for instruction

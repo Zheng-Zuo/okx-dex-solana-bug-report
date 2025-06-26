@@ -75,7 +75,7 @@ pub struct PumpfunBuyAccounts<'info> {
     pub associated_bonding_curve: &'info AccountInfo<'info>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
-    pub rent: &'info AccountInfo<'info>,
+    pub creator_vault: &'info AccountInfo<'info>,
     pub event_authority: &'info AccountInfo<'info>,
 }
 
@@ -117,7 +117,7 @@ impl<'info> PumpfunBuyAccounts<'info> {
             associated_bonding_curve,
             system_program,
             token_program,
-            rent,
+            creator_vault,
             event_authority,
             
         ]: &[AccountInfo<'info>; BUY_ACCOUNTS_LEN] = array_ref![accounts, offset, BUY_ACCOUNTS_LEN];
@@ -134,7 +134,7 @@ impl<'info> PumpfunBuyAccounts<'info> {
             associated_bonding_curve,
             system_program: Program::try_from(system_program)?,
             token_program: Program::try_from(token_program)?,
-            rent,
+            creator_vault,
             event_authority,
         })
     }
@@ -203,7 +203,7 @@ pub fn buy<'a>(
         AccountMeta::new(swap_accounts.swap_authority_pubkey.key(), true),
         AccountMeta::new_readonly(swap_accounts.system_program.key(), false),
         AccountMeta::new_readonly(swap_accounts.token_program.key(), false),
-        AccountMeta::new_readonly(swap_accounts.rent.key(), false),
+        AccountMeta::new(swap_accounts.creator_vault.key(), false),
         AccountMeta::new_readonly(swap_accounts.event_authority.key(), false),
         AccountMeta::new_readonly(swap_accounts.dex_program_id.key(), false)
     ];
@@ -218,7 +218,7 @@ pub fn buy<'a>(
         swap_accounts.swap_authority_pubkey.to_account_info(),
         swap_accounts.system_program.to_account_info(),
         swap_accounts.token_program.to_account_info(),
-        swap_accounts.rent.to_account_info(),
+        swap_accounts.creator_vault.to_account_info(),
         swap_accounts.event_authority.to_account_info(),
         swap_accounts.dex_program_id.to_account_info(),
         swap_accounts.swap_source_token.to_account_info(),
@@ -291,7 +291,7 @@ pub struct PumpfunSellAccounts<'info> {
     pub bonding_curve: &'info AccountInfo<'info>,
     pub associated_bonding_curve: &'info AccountInfo<'info>,
     pub system_program: Program<'info, System>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub creator_vault: &'info AccountInfo<'info>,
     pub token_program: Program<'info, Token>,
     pub event_authority: &'info AccountInfo<'info>,
     
@@ -312,7 +312,7 @@ impl<'info> PumpfunSellAccounts<'info> {
             bonding_curve,
             associated_bonding_curve,
             system_program,
-            associated_token_program,
+            creator_vault,
             token_program,
             event_authority,
        
@@ -329,7 +329,7 @@ impl<'info> PumpfunSellAccounts<'info> {
             bonding_curve,
             associated_bonding_curve,
             system_program: Program::try_from(system_program)?,
-            associated_token_program: Program::try_from(associated_token_program)?,
+            creator_vault,
             token_program: Program::try_from(token_program)?,
             event_authority,
       
@@ -399,7 +399,7 @@ pub fn sell<'a>(
         AccountMeta::new(swap_accounts.swap_source_token.key(), false),
         AccountMeta::new(swap_accounts.swap_authority_pubkey.key(), true),
         AccountMeta::new_readonly(swap_accounts.system_program.key(), false),
-        AccountMeta::new_readonly(swap_accounts.associated_token_program.key(), false),
+        AccountMeta::new(swap_accounts.creator_vault.key(), false),
         AccountMeta::new_readonly(swap_accounts.token_program.key(), false),
         AccountMeta::new_readonly(swap_accounts.event_authority.key(), false),
         AccountMeta::new_readonly(swap_accounts.dex_program_id.key(), false),
@@ -414,7 +414,7 @@ pub fn sell<'a>(
         swap_accounts.swap_source_token.to_account_info(),
         swap_accounts.swap_authority_pubkey.to_account_info(),
         swap_accounts.system_program.to_account_info(),
-        swap_accounts.associated_token_program.to_account_info(),
+        swap_accounts.creator_vault.to_account_info(),
         swap_accounts.token_program.to_account_info(),
         swap_accounts.event_authority.to_account_info(),
         swap_accounts.dex_program_id.to_account_info(),
