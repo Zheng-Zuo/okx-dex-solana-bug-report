@@ -279,11 +279,11 @@ describe("Pumpfun Buy Tests", () => {
 });
 
 // this error
-// [2025-06-26T06:01:04.768762000Z DEBUG solana_runtime::message_processor::stable_log] Program log: AnchorError caused by account: creator_vault. Error Code: ConstraintSeeds. Error Number: 2006. Error Message: A seeds constraint was violated.
-// [2025-06-26T06:01:04.768765000Z DEBUG solana_runtime::message_processor::stable_log] Program log: Left:
-// [2025-06-26T06:01:04.768768000Z DEBUG solana_runtime::message_processor::stable_log] Program log: SysvarRent111111111111111111111111111111111
-// [2025-06-26T06:01:04.768769000Z DEBUG solana_runtime::message_processor::stable_log] Program log: Right:
-// [2025-06-26T06:01:04.768772000Z DEBUG solana_runtime::message_processor::stable_log] Program log: BxE6X4JgY2xN8arBYBCMmagMfXSbQSEWFRFufExJwvE3
+// Program log: AnchorError caused by account: creator_vault. Error Code: ConstraintSeeds. Error Number: 2006. Error Message: A seeds constraint was violated.
+// Program log: Left:
+// Program log: SysvarRent111111111111111111111111111111111
+// Program log: Right:
+// Program log: BxE6X4JgY2xN8arBYBCMmagMfXSbQSEWFRFufExJwvE3
 
 // or this error
-// [2025-06-26T09:52:07.091316000Z DEBUG solana_runtime::message_processor::stable_log] Program log: AnchorError caused by account: creator_vault. Error Code: ConstraintMut. Error Number: 2000. Error Message: A mut constraint was violated.
+// Program log: AnchorError caused by account: creator_vault. Error Code: ConstraintMut. Error Number: 2000. Error Message: A mut constraint was violated.
